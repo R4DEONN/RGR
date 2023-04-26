@@ -4,7 +4,7 @@ CONST
   MaxLength = 255;
   EngLet = ['a' .. 'z'];
   RusLet = ['à' .. 'ï'] + ['ð' .. 'ÿ'] + ['¸'];
-  Letters = EngLet + RusLet;
+  Letters = EngLet + RusLet + ['-'];
   EqualKey = 0;
   RootBigger = 2;
   RootSmaller = 1;
@@ -104,6 +104,24 @@ BEGIN {SearchPointer}
           SearchWordInTree := SearchWordInTree(Ptr^.Right, Word)
     END
 END; {SearchPointer}
+
+
+PROCEDURE OutputTree(VAR FOut: TEXT; Ptr: Tree);
+VAR
+  Index: INTEGER;
+BEGIN {OutputTree}
+  IF Ptr <> NIL
+  THEN
+    BEGIN
+      OutputTree(FOut, Ptr^.Left);
+      FOR Index := 1 TO Ptr^.Key.Length
+      DO
+        WRITE(FOut, Ptr^.Key.Val[Index]);
+      WRITELN(FOut, ' ', Ptr^.Count);
+      OutputTree(FOut, Ptr^.Right)
+    END
+END; {OutputTree}
+
              
 FUNCTION ToLower(Ch: CHAR): CHAR;
 BEGIN {ToLower}
@@ -223,7 +241,7 @@ BEGIN {CountWords}
       THEN
         READLN(FIn)
     END;
-  //TODO Output to FOut
+  OutputTree(FOut, Root);
   CLOSE(FIn);
   CLOSE(FOut)                  
 END. {CountWords}
