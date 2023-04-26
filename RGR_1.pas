@@ -5,6 +5,9 @@ CONST
   EngLet = ['a' .. 'z'];
   RusLet = ['а' .. 'п'] + ['р' .. 'я'] + ['ё'];
   Letters = EngLet + RusLet;
+  EqualKey = 0;
+  RootBigger = 2;
+  RootSmaller = 1;
 
 TYPE
   StrType = RECORD
@@ -24,7 +27,7 @@ FUNCTION Lexico(Word1, Word2: StrType): INTEGER;
 должны быть различными}
 VAR
   Ch1, Ch2: CHAR;
-  Index{, Result}: INTEGER;
+  Index: INTEGER;
 BEGIN {Lexico}
   Index := 1;
   Result := 0;
@@ -55,6 +58,8 @@ BEGIN {Lexico}
 END; {Lexico}             
              
 PROCEDURE Insert(VAR Ptr: Tree; Word: StrType);
+VAR
+  Flag: INTEGER;
 BEGIN {Insert}
   IF Ptr = NIL
   THEN
@@ -65,12 +70,39 @@ BEGIN {Insert}
       Ptr^.Left := NIL;
       Ptr^.Right := NIL
     END
-  //TODO Lexico
+  ELSE
+    BEGIN
+      Flag := Lexico(Ptr^.Key, Word);
+      IF Flag = RootBigger
+      THEN
+        Insert(Ptr^.Left, Word)
+      ELSE
+        Insert(Ptr^.Right, Word)
+    END
 END; {Insert}
 
-FUNCTION SearchPointer(Ptr: Tree; Word: StrType): Tree;
+FUNCTION SearchWordInTree(Ptr: Tree; Word: StrType): BOOLEAN;
+VAR
+  Flag: INTEGER;
 BEGIN {SearchPointer}
-  SearchPointer := NIL
+  SearchWordInTree := FALSE;
+  IF Ptr <> NIL
+  THEN
+    BEGIN
+      Flag := Lexico(Ptr^.Key, Word);
+      IF Flag = EqualKey
+      THEN
+        BEGIN
+          Ptr^.Count := Ptr^.Count + 1;
+          SearchWordInTree := TRUE
+        END
+      ELSE
+        IF Flag = RootBigger
+        THEN
+          SearchWordInTree := SearchWordInTree(Ptr^.Left, Word)
+        ELSE
+          SearchWordInTree := SearchWordInTree(Ptr^.Right, Word)
+    END
 END; {SearchPointer}
              
 FUNCTION ToLower(Ch: CHAR): CHAR;
@@ -171,16 +203,20 @@ BEGIN {CountWords}
             IF Index <> 0
             THEN
               BEGIN
-                //TODO Search
                 Word.Length := Index;
-                Insert(Root, Word);
+                IF NOT SearchWordInTree(Root, Word)
+                THEN
+                  Insert(Root, Word);
                 Index := 0
               END
         END;
       IF Index <> 0
       THEN
         BEGIN
-          Insert(Root, Word);
+          Word.Length := Index;
+          IF NOT SearchWordInTree(Root, Word)
+          THEN
+            Insert(Root, Word);
           Index := 0
         END;
       IF NOT EOF(FIn)
