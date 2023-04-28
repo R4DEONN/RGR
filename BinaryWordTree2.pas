@@ -1,4 +1,4 @@
-UNIT BinaryWordTree;
+UNIT BinaryWordTree2;
 
 INTERFACE
 
@@ -21,14 +21,14 @@ FUNCTION Height(Ptr: Tree): INTEGER;
 BEGIN {Height}
   IF Ptr <> NIL
   THEN
-    Height := Ptr^.Height
+    Result := Ptr^.Height
   ELSE
-    Height := 0
+    Result := 0
 END; {Height}
 
 FUNCTION BalanceFactor(Ptr: Tree): INTEGER;
 BEGIN
-  BalanceFactor := Height(Ptr^.Left) - Height(Ptr^.Right)
+  Result := Height(Ptr^.Left) - Height(Ptr^.Right)
 END;
 
 PROCEDURE SetHeight(VAR Ptr: Tree);
@@ -57,7 +57,7 @@ BEGIN {RotateRight}
   TmpPtr^.Right := Ptr;
   SetHeight(Ptr);
   SetHeight(TmpPtr);
-  RotateRight := TmpPtr
+  Result := TmpPtr
 END;  {RotateRight} 
 
 FUNCTION RotateLeft(VAR Ptr: Tree): Tree;
@@ -69,20 +69,20 @@ BEGIN {RotateRight}
   TmpPtr^.Left := Ptr;
   SetHeight(Ptr);
   SetHeight(TmpPtr);
-  RotateLeft := TmpPtr
+  Result := TmpPtr
 END;  {RotateRight} 
 
 FUNCTION Balance(VAR Ptr: Tree): Tree;
 BEGIN {Balance}
   SetHeight(Ptr);
-  Balance := Ptr;
+  Result := Ptr;
   IF BalanceFactor(Ptr) = 2
   THEN
     BEGIN
-      IF (BalanceFactor(Ptr^.Left) < 0)
+      IF BalanceFactor(Ptr^.Left) < 0
       THEN
         Ptr^.Left := RotateLeft(Ptr^.Left);
-      Balance := RotateRight(Ptr)
+      Result := RotateRight(Ptr)
     END
   ELSE
     IF BalanceFactor(Ptr) = -2
@@ -91,14 +91,15 @@ BEGIN {Balance}
         IF BalanceFactor(Ptr^.Right) > 0
         THEN
           Ptr^.Right := RotateRight(Ptr^.Right);
-        Balance := RotateLeft(Ptr)
+        Result := RotateLeft(Ptr)
       END
 END; {Balance}
     
 FUNCTION Lexico(Word1, Word2: StrType; Len1, Len2: INTEGER): INTEGER;
 {Result 0, 1, 2 если лексикографический порядок F1 =, <, > чем F2       
-соответственно. Фактические параметры, соответствующие F1 и F2,
+соответственно. Фактические параметры, соответствующие F1 и F2,   
 должны быть различными}
+
 VAR
   Ch1, Ch2: CHAR;
   Index: INTEGER;
@@ -131,6 +132,12 @@ BEGIN {Lexico}
 END; {Lexico}  
 
 FUNCTION Insert(VAR Ptr: Tree; Word: StrType; Len: INTEGER): Tree;
+
+CONST
+  EqualKey = 0;
+  RootBigger = 2;
+  RootSmaller = 1;
+
 VAR
   Flag: INTEGER;
 BEGIN {Insert}
@@ -148,17 +155,17 @@ BEGIN {Insert}
   ELSE
     BEGIN
       Flag := Lexico(Ptr^.Key, Word, Ptr^.Length, Len);
-      IF Flag = 2
+      IF Flag = RootBigger
       THEN
         Ptr^.Left := Insert(Ptr^.Left, Word, Len)
       ELSE
-        IF Flag = 0
+        IF Flag = EqualKey
         THEN
           Ptr^.Count := Ptr^.Count + 1
         ELSE
           Ptr^.Right := Insert(Ptr^.Right, Word, Len)
     END;
-  Insert := Balance(Ptr)
+  Result := Balance(Ptr)
 END; {Insert}
 
 PROCEDURE OutputTree(VAR FOut: TEXT; Ptr: Tree);
