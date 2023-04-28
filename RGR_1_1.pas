@@ -17,7 +17,7 @@ TYPE
   Tree = ^NodeType;
   NodeType = RECORD
                Key: StrType;
-               Count: INTEGER;
+               Count, Height: INTEGER;
                Left, Right: Tree
              END;
              
@@ -55,7 +55,47 @@ BEGIN {Lexico}
       THEN
         Result := 1;
   Lexico := Result
-END; {Lexico}             
+END; {Lexico}
+
+FUNCTION BalanceFactor(Ptr: Tree): INTEGER;
+BEGIN
+  BalanceFactor := Ptr^.Left^.Height - Ptr^.Right^.Heigth
+END;
+
+FUNCTION Height(Ptr: Tree): INTEGER;
+BEGIN {Height}
+  IF Ptr <> NIL
+  THEN
+    Height := Ptr^.Height
+  ELSE
+    Height := 0
+END; {Height}
+
+PROCEDURE SetHeight(VAR Ptr: Tree);
+VAR
+  HeightL, HeightR: INTEGER;
+BEGIN {Height}
+  IF Ptr <> NIL
+  THEN
+    BEGIN
+      HeightL := Height(Ptr^.Left);
+      HeightR := Height(Ptr^.Right);
+      IF HeightL >= HeightR
+      THEN
+        Ptr^.Height := HeightL + 1
+      ELSE
+        Ptr^.Height := HeightR + 1
+    END
+END; {Height}
+
+FUNCTION RotateRight(VAR Ptr: Tree): Tree;
+BEGIN {RotateRight}
+  Ptr^.Left := Ptr^.Left^.Right;
+  Ptr^.Left^.Right := Ptr;
+  SetHeight(Ptr);
+  SetHeight(Ptr^.Left);
+  RotateRight := Ptr^.Left
+END;  {RotateRight}             
              
 PROCEDURE Insert(VAR Ptr: Tree; Word: StrType);
 VAR
@@ -77,11 +117,7 @@ BEGIN {Insert}
       THEN
         Insert(Ptr^.Left, Word)
       ELSE
-        IF Flag = RootSmaller
-        THEN
-          Insert(Ptr^.Right, Word)
-        ELSE
-          Ptr^.Count := Ptr^.Count + 1
+        Insert(Ptr^.Right, Word)
     END
 END; {Insert}
 
@@ -110,19 +146,19 @@ BEGIN {SearchPointer}
 END; {SearchPointer}
 
 
-PROCEDURE OutputTree(VAR FOut: TEXT; Ptr: Tree);
+PROCEDURE OutputTree(Ptr: Tree);
 VAR
   Index: INTEGER;
 BEGIN {OutputTree}
   IF Ptr <> NIL
   THEN
     BEGIN
-      OutputTree(FOut, Ptr^.Left);
+      OutputTree(Ptr^.Left);
       FOR Index := 1 TO Ptr^.Key.Length
       DO
-        WRITE(FOut, Ptr^.Key.Val[Index]);
-      WRITELN(FOut, ' ', Ptr^.Count);
-      OutputTree(FOut, Ptr^.Right)
+        WRITE(Ptr^.Key.Val[Index]);
+      WRITELN(' ', Ptr^.Count);
+      OutputTree(Ptr^.Right)
     END
 END; {OutputTree}
 
@@ -200,20 +236,16 @@ VAR
   Index: 0 .. MaxLength;
 
 BEGIN {CountWords}
-  ASSIGN(FIn, 'voyna-i-mir-tom-1.txt');
-  ASSIGN(FOut, 'out.txt');
-  RESET(FIn);
-  REWRITE(FOut);
   Index := 0;
   Root := NIL;
   
-  WHILE NOT EOF(FIn)
+  WHILE NOT EOF
   DO
     BEGIN
-      WHILE (NOT EOLN(FIn)) AND (NOT EOF(FIn))
+      WHILE (NOT EOLN) AND (NOT EOF)
       DO
         BEGIN
-          READ(FIn, Ch);
+          READ(Ch);
           Ch := ToLower(Ch);
           IF Ch IN Letters
           THEN
@@ -226,7 +258,9 @@ BEGIN {CountWords}
             THEN
               BEGIN
                 Word.Length := Index;
-                Insert(Root, Word);
+                IF NOT SearchWordInTree(Root, Word)
+                THEN
+                  Insert(Root, Word);
                 Index := 0
               END
         END;
@@ -234,14 +268,21 @@ BEGIN {CountWords}
       THEN
         BEGIN
           Word.Length := Index;
-          Insert(Root, Word);
+          IF NOT SearchWordInTree(Root, Word)
+          THEN
+            Insert(Root, Word);
           Index := 0
         END;
-      IF NOT EOF(FIn)
+      IF NOT EOF
       THEN
-        READLN(FIn)
+        READLN
     END;
-  OutputTree(FOut, Root);
-  CLOSE(FIn);
-  CLOSE(FOut)                  
+  Root^.Left := NIL;
+  Root^.Right^.Height := 1;
+  IF Root^.Left^.Height >= Root^.Right^.Height
+  THEN
+    WRITE('1')
+  ELSE
+    WRITE('2')
+ // OutputTree(Root)
 END. {CountWords}

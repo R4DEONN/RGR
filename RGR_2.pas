@@ -3,11 +3,10 @@ USES
   BinaryWordTree;
 
 CONST
-  MaxLength = 100;
+  MaxLength = 255;
   EngLet = ['a' .. 'z'];
   RusLet = ['à' .. 'ï'] + ['ð' .. 'ÿ'] + ['¸'];
-  BigLetters = ['A' .. 'Z'] + ['a' .. 'z'] + ['À' .. 'ß'] + ['¨'];
-  SmallLetters = EngLet + RusLet + ['-'];
+  Letters = EngLet + RusLet + ['-'];
              
 FUNCTION ToLower(Ch: CHAR): CHAR;
 BEGIN {ToLower}
@@ -71,8 +70,6 @@ BEGIN {ToLower}
     'Ý': ToLower := 'ý';
     'Þ': ToLower := 'þ';
     'ß': ToLower := 'ÿ'
-  ELSE
-    ToLower := Ch
   END
 END; {ToLower}           
              
@@ -84,48 +81,49 @@ VAR
   Index: 0 .. MaxLength;
 
 BEGIN {CountWords}
-  ASSIGN(FIn, 'in.txt');
-  ASSIGN(FOut, 'out.txt');
-  RESET(FIn);
-  REWRITE(FOut);
   Index := 0;
   Root := NIL;
   
-  WHILE NOT EOF(FIn)
+  WHILE NOT EOF
   DO
     BEGIN
-      WHILE (NOT EOLN(FIn)) AND (NOT EOF(FIn))
+      WHILE (NOT EOLN) AND (NOT EOF)
       DO
         BEGIN
-          READ(FIn, Ch);
-          IF Ch IN BigLetters
-          THEN 
-            Ch := ToLower(Ch);
-          IF (Ch IN SmallLetters) AND (Index <= MaxLength)
+          READ(Ch);
+          Ch := ToLower(Ch);
+          IF Ch IN Letters
           THEN
             BEGIN
               Index := Index + 1;
-              Word[Index] := Ch
+              Word.Val[Index] := Ch
             END
           ELSE
             IF Index <> 0
             THEN
               BEGIN
-                Root := Insert(Root, Word, Index);
+                IF Root^.Height >= 20
+                THEN
+                  OutputTree(Root);
+                Word.Length := Index;
+                IF NOT SearchWordInTree(Root, Word)
+                THEN
+                  Root := Insert(Root, Word);
                 Index := 0
               END
         END;
       IF Index <> 0
       THEN
         BEGIN
-          Root := Insert(Root, Word, Index);
+          Word.Length := Index;
+          IF NOT SearchWordInTree(Root, Word)
+          THEN
+            Root := Insert(Root, Word);
           Index := 0
         END;
-      IF NOT EOF(FIn)
+      IF NOT EOF
       THEN
-        READLN(FIn)
+        READLN
     END;
-  OutputTree(FOut, Root);
-  CLOSE(FIn);
-  CLOSE(FOut)
+  OutputTree(Root)
 END. {CountWords}

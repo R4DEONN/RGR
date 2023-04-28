@@ -3,17 +3,23 @@ UNIT BinaryWordTree;
 INTERFACE
 
 TYPE
-  StrType = ARRAY [1 .. 255] OF CHAR;
+  StrType = RECORD
+              Val: ARRAY [1 .. 255] OF CHAR;
+              Length: INTEGER
+            END;
   Tree = ^NodeType;
   NodeType = RECORD
                Key: StrType;
-               Count, Height, Length: INTEGER;
+               Count, Height: INTEGER;
                Left, Right: Tree
              END;
+               
+FUNCTION SearchWordInTree(Ptr: Tree; Word: StrType): BOOLEAN; 
+{ќпредел€ет есть слово в дереве или нет, если есть, то увеличивает у слово число повторений}
 
-FUNCTION Insert(VAR Ptr: Tree; Word: StrType; Len: INTEGER): Tree; {ƒобавл€ет новое слово в дерево}
+FUNCTION Insert(VAR Ptr: Tree; Word: StrType): Tree; {ƒобавл€ет новое слово в дерево}
 
-PROCEDURE OutputTree(VAR FOut: TEXT; Ptr: Tree); {¬ыводит элементы дерева в виде <слово><пробел><количество повторений>}
+PROCEDURE OutputTree(Ptr: Tree); {¬ыводит элементы дерева в виде <слово><пробел><количество повторений>}
 
 IMPLEMENTATION
   
@@ -32,6 +38,8 @@ BEGIN {Height}
 END; {Height}
 
 FUNCTION BalanceFactor(Ptr: Tree): INTEGER;
+VAR
+  HeightL, HeightR: INTEGER;
 BEGIN
   BalanceFactor := Height(Ptr^.Left) - Height(Ptr^.Right)
 END;
@@ -100,7 +108,7 @@ BEGIN {Balance}
       END
 END; {Balance}
     
-FUNCTION Lexico(Word1, Word2: StrType; Len1, Len2: INTEGER): INTEGER;
+FUNCTION Lexico(Word1, Word2: StrType): INTEGER;
 {Result 0, 1, 2 если лексикографический пор€док F1 =, <, > чем F2       
 соответственно. ‘актические параметры, соответствующие F1 и F2,
 должны быть различными}
@@ -110,11 +118,11 @@ VAR
 BEGIN {Lexico}
   Index := 1;
   Result := 0;
-  WHILE ((Index <> Len1 + 1) AND (Index <> Len2 + 1)) AND (Result = 0)
+  WHILE ((Index <> Word1.Length + 1) AND (Index <> Word2.Length + 1)) AND (Result = 0)
   DO
     BEGIN
-      Ch1 := Word1[Index];
-      Ch2 := Word2[Index];
+      Ch1 := Word1.Val[Index];
+      Ch2 := Word2.Val[Index];
       Index := Index + 1;
       IF (Ch1 < Ch2)
       THEN {Ch1 < Ch2 или F1 короче F2}
@@ -126,17 +134,17 @@ BEGIN {Lexico}
     END; {WHILE}
   IF Result = 0
   THEN
-    IF Index <> Len1 + 1
+    IF Index <> Word1.Length + 1
     THEN
       Result := 2
     ELSE
-      IF Index <> Len2 + 1
+      IF Index <> Word2.Length + 1
       THEN
         Result := 1;
   Lexico := Result
 END; {Lexico}  
 
-FUNCTION Insert(VAR Ptr: Tree; Word: StrType; Len: INTEGER): Tree;
+FUNCTION Insert(VAR Ptr: Tree; Word: StrType): Tree;
 VAR
   Flag: INTEGER;
 BEGIN {Insert}
@@ -147,39 +155,72 @@ BEGIN {Insert}
       Ptr^.Key := Word;
       Ptr^.Count := 1;
       Ptr^.Height := 1;
-      Ptr^.Length := Len;
       Ptr^.Left := NIL;
       Ptr^.Right := NIL
     END
   ELSE
     BEGIN
-      Flag := Lexico(Ptr^.Key, Word, Ptr^.Length, Len);
+      Flag := Lexico(Ptr^.Key, Word);
       IF Flag = RootBigger
       THEN
-        Ptr^.Left := Insert(Ptr^.Left, Word, Len)
+        Ptr^.Left := Insert(Ptr^.Left, Word)
       ELSE
-        IF Flag = EqualKey
-        THEN
-          Ptr^.Count := Ptr^.Count + 1
-        ELSE
-          Ptr^.Right := Insert(Ptr^.Right, Word, Len)
+        Ptr^.Right := Insert(Ptr^.Right, Word)
     END;
   Insert := Balance(Ptr)
 END; {Insert}
 
-PROCEDURE OutputTree(VAR FOut: TEXT; Ptr: Tree);
+FUNCTION SearchWordInTree(Ptr: Tree; Word: StrType): BOOLEAN;
 VAR
-  Index: INTEGER;
-BEGIN {OutputTree}
+  Flag: INTEGER;
+BEGIN {SearchPointer}
+  SearchWordInTree := FALSE;
   IF Ptr <> NIL
   THEN
     BEGIN
-      OutputTree(FOut, Ptr^.Left);
-      FOR Index := 1 TO Ptr^.Length
+      Flag := Lexico(Ptr^.Key, Word);
+      IF Flag = EqualKey
+      THEN
+        BEGIN
+          Ptr^.Count := Ptr^.Count + 1;
+          SearchWordInTree := TRUE
+        END
+      ELSE
+        IF Flag = RootBigger
+        THEN
+          SearchWordInTree := SearchWordInTree(Ptr^.Left, Word)
+        ELSE
+          SearchWordInTree := SearchWordInTree(Ptr^.Right, Word)
+    END
+END; {SearchPointer}
+
+PROCEDURE OutputTree(Ptr: Tree; VAR F: TEXT);
+VAR
+  Word: StrType;
+  Index: INTEGER;
+  Ch: CHAR;
+  FTmp: TEXT;
+BEGIN {OutputTree}
+  RESET(FOut);
+  Index := 0;
+  IF Ptr <> NIL
+  THEN
+    BEGIN
+      OutputTree(Ptr^.Left, F);
+      IF (NOT EOLN(FOut)) AND (NOT EOF(F))
+      THEN
+        READ(F, Ch);
+      WHILE (Ch <> ' ') AND (NOT EOF(F)) AND (NOT EOLN(F))
       DO
-        WRITE(FOut, Ptr^.Key[Index]);
-      WRITELN(FOut, ' ', Ptr^.Count);
-      OutputTree(FOut, Ptr^.Right)
+        BEGIN
+          Index := Index + 1;
+          Word.Val[Index] := Ch;
+          READ(F, Ch)
+        END;
+      Word.Length := Index;
+      Flag := Lexico(Ptr^.Key, Word);
+      
+      OutputTree(Ptr^.Right, F)
     END
 END; {OutputTree}
   
