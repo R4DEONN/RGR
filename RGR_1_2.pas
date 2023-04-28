@@ -1,6 +1,6 @@
 PROGRAM CountWords(INPUT, OUTPUT);
 USES
-  BinaryWordTree;
+  BinaryWordTree2;
 
 CONST
   MaxLength = 100;
@@ -13,91 +13,87 @@ FUNCTION ToLower(Ch: CHAR): CHAR;
 BEGIN {ToLower}
   CASE Ch OF
     'A': ToLower := 'a';
-    'B': ToLower := 'b';
-    'C': ToLower := 'c';
-    'D': ToLower := 'd';
-    'E': ToLower := 'e';
-    'F': ToLower := 'f';
-    'G': ToLower := 'g';
-    'H': ToLower := 'h';
-    'I': ToLower := 'i';
-    'J': ToLower := 'j';
-    'K': ToLower := 'k';
-    'L': ToLower := 'l';
-    'M': ToLower := 'm';
-    'N': ToLower := 'n';
-    'O': ToLower := 'o';
-    'P': ToLower := 'p';
-    'Q': ToLower := 'q';
-    'R': ToLower := 'r';
-    'S': ToLower := 's';
-    'T': ToLower := 't';
-    'U': ToLower := 'u';
-    'V': ToLower := 'v';
-    'W': ToLower := 'w';
-    'X': ToLower := 'x';
-    'Y': ToLower := 'y';
-    'Z': ToLower := 'z';
-    'À': ToLower := 'à';
-    'Á': ToLower := 'á';
-    'Â': ToLower := 'â';
-    'Ã': ToLower := 'ã';
-    'Ä': ToLower := 'ä';
-    'Å': ToLower := 'å';
-    '¨': ToLower := '¸';
-    'Æ': ToLower := 'æ';
-    'Ç': ToLower := 'ç';
-    'È': ToLower := 'è';
-    'É': ToLower := 'é';
-    'Ê': ToLower := 'ê';
-    'Ë': ToLower := 'ë';
-    'Ì': ToLower := 'ì';
-    'Í': ToLower := 'í';
-    'Î': ToLower := 'î';
-    'Ï': ToLower := 'ï';
-    'Ð': ToLower := 'ð';
-    'Ñ': ToLower := 'ñ';
-    'Ò': ToLower := 'ò';
-    'Ó': ToLower := 'ó';
-    'Ô': ToLower := 'ô';
-    'Õ': ToLower := 'õ';
-    'Ö': ToLower := 'ö';
-    '×': ToLower := '÷';
-    'Ø': ToLower := 'ø';
-    'Ù': ToLower := 'ù';
-    'Ú': ToLower := 'ú';
-    'Û': ToLower := 'û';
-    'Ü': ToLower := 'ü';
-    'Ý': ToLower := 'ý';
-    'Þ': ToLower := 'þ';
-    'ß': ToLower := 'ÿ'
+    'B': Result := 'b';
+    'C': Result := 'c';
+    'D': Result := 'd';
+    'E': Result := 'e';
+    'F': Result := 'f';
+    'G': Result := 'g';
+    'H': Result := 'h';
+    'I': Result := 'i';
+    'J': Result := 'j';
+    'K': Result := 'k';
+    'L': Result := 'l';
+    'M': Result := 'm';
+    'N': Result := 'n';
+    'O': Result := 'o';
+    'P': Result := 'p';
+    'Q': Result := 'q';
+    'R': Result := 'r';
+    'S': Result := 's';
+    'T': Result := 't';
+    'U': Result := 'u';
+    'V': Result := 'v';
+    'W': Result := 'w';
+    'X': Result := 'x';
+    'Y': Result := 'y';
+    'Z': Result := 'z';
+    'À': Result := 'à';
+    'Á': Result := 'á';
+    'Â': Result := 'â';
+    'Ã': Result := 'ã';
+    'Ä': Result := 'ä';
+    'Å': Result := 'å';
+    '¨': Result := '¸';
+    'Æ': Result := 'æ';
+    'Ç': Result := 'ç';
+    'È': Result := 'è';
+    'É': Result := 'é';
+    'Ê': Result := 'ê';
+    'Ë': Result := 'ë';
+    'Ì': Result := 'ì';
+    'Í': Result := 'í';
+    'Î': Result := 'î';
+    'Ï': Result := 'ï';
+    'Ð': Result := 'ð';
+    'Ñ': Result := 'ñ';
+    'Ò': Result := 'ò';
+    'Ó': Result := 'ó';
+    'Ô': Result := 'ô';
+    'Õ': Result := 'õ';
+    'Ö': Result := 'ö';
+    '×': Result := '÷';
+    'Ø': Result := 'ø';
+    'Ù': Result := 'ù';
+    'Ú': Result := 'ú';
+    'Û': Result := 'û';
+    'Ü': Result := 'ü';
+    'Ý': Result := 'ý';
+    'Þ': Result := 'þ';
+    'ß': Result := 'ÿ'
   ELSE
-    ToLower := Ch
+    Result := Ch
   END
-END; {ToLower}           
+END; {Result}           
              
 VAR
   Root: Tree;
   Ch: CHAR;
-  FIn, FOut: TEXT;
+  F: TEXT;
   Word: StrType;
   Index: 0 .. MaxLength;
 
 BEGIN {CountWords}
-  ASSIGN(FIn, 'in.txt');
-  ASSIGN(FOut, 'out.txt');
-  RESET(FIn);
-  REWRITE(FOut);
   Index := 0;
   Root := NIL;
   
-  WHILE NOT EOF(FIn)
+  WHILE NOT EOF
   DO
     BEGIN
-      WHILE (NOT EOLN(FIn)) AND (NOT EOF(FIn))
+      WHILE (NOT EOLN) AND (NOT EOF)
       DO
         BEGIN
-          READ(FIn, Ch);
+          READ(Ch);
           IF Ch IN BigLetters
           THEN 
             Ch := ToLower(Ch);
@@ -121,11 +117,9 @@ BEGIN {CountWords}
           Root := Insert(Root, Word, Index);
           Index := 0
         END;
-      IF NOT EOF(FIn)
+      IF NOT EOF
       THEN
-        READLN(FIn)
+        READLN
     END;
-  OutputTree(FOut, Root);
-  CLOSE(FIn);
-  CLOSE(FOut)
+  OutputTree(OUTPUT, Root)
 END. {CountWords}
