@@ -3,7 +3,6 @@ USES
   BinaryWordTree2;
 
 CONST
-  MaxLength = 100;
   EngLet = ['a' .. 'z'];
   RusLet = ['à' .. 'ï'] + ['ð' .. 'ÿ'] + ['¸'];
   BigLetters = ['A' .. 'Z'] + ['a' .. 'z'] + ['À' .. 'ß'] + ['¨'];
@@ -12,7 +11,7 @@ CONST
 FUNCTION ToLower(Ch: CHAR): CHAR;
 BEGIN {ToLower}
   CASE Ch OF
-    'A': ToLower := 'a';
+    'A': Result := 'a';
     'B': Result := 'b';
     'C': Result := 'c';
     'D': Result := 'd';
@@ -77,16 +76,17 @@ BEGIN {ToLower}
 END; {Result}           
              
 VAR
+  Word: WordType;
   Root: Tree;
   Ch: CHAR;
-  F: TEXT;
-  Word: StrType;
-  Index: 0 .. MaxLength;
+  FOut: TEXT;
+  Index: 0 .. MaxLen;
 
 BEGIN {CountWords}
+  ASSIGN(FOut, 'out.txt');
+  REWRITE(FOut);
   Index := 0;
   Root := NIL;
-  
   WHILE NOT EOF
   DO
     BEGIN
@@ -97,29 +97,50 @@ BEGIN {CountWords}
           IF Ch IN BigLetters
           THEN 
             Ch := ToLower(Ch);
-          IF (Ch IN SmallLetters) AND (Index <= MaxLength)
+          IF (Ch IN SmallLetters) AND (Index < MaxLen) AND ((Ch <> '-') OR ((NOT EOLN) AND (Index <> 0)))
           THEN
             BEGIN
               Index := Index + 1;
-              Word[Index] := Ch
+              Word.Val[Index] := Ch
             END
           ELSE
             IF Index <> 0
             THEN
               BEGIN
-                Root := Insert(Root, Word, Index);
+                Word.Len := Index;
+                Word.Count := 1;                               
+                Root := Insert(Root, Word);
+                Word.Len := 0;
+                Word.Count := 0;
+                IF Root^.Height >= 15
+                THEN
+                  BEGIN
+                    RESET(FOut);
+                    Root := OutputTree(FOut, Root)
+                  END;
                 Index := 0
               END
         END;
       IF Index <> 0
       THEN
         BEGIN
-          Root := Insert(Root, Word, Index);
+          Word.Len := Index;
+          Word.Count := 1;                               
+          Root := Insert(Root, Word);
+          Word.Len := 0;
+          Word.Count := 0;
+          IF Root^.Height >= 15
+          THEN
+            BEGIN
+              RESET(FOut);
+              Root := OutputTree(FOut, Root)
+            END;
           Index := 0
         END;
       IF NOT EOF
       THEN
         READLN
     END;
-  OutputTree(OUTPUT, Root)
+  RESET(FOut);
+  Root := OutputTree(FOut, Root)
 END. {CountWords}

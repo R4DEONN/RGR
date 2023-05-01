@@ -1,9 +1,12 @@
-UNIT BinaryWordTree2;
+UNIT BinaryWordTree;
 
 INTERFACE
 
+CONST
+  MaxLen = 255;
+
 TYPE
-  StrType = ARRAY [1 .. 255] OF CHAR;
+  StrType = ARRAY [1 .. MaxLen] OF CHAR;
   Tree = ^NodeType;
   NodeType = RECORD
                Key: StrType;

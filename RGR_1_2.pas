@@ -1,9 +1,8 @@
 PROGRAM CountWords(INPUT, OUTPUT);
 USES
-  BinaryWordTree2;
+  BinaryWordTree;
 
 CONST
-  MaxLength = 100;
   EngLet = ['a' .. 'z'];
   RusLet = ['à' .. 'ï'] + ['ð' .. 'ÿ'] + ['¸'];
   BigLetters = ['A' .. 'Z'] + ['a' .. 'z'] + ['À' .. 'ß'] + ['¨'];
@@ -77,11 +76,11 @@ BEGIN {ToLower}
 END; {Result}           
              
 VAR
+  Index: 0 .. MaxLen;
   Root: Tree;
   Ch: CHAR;
   F: TEXT;
   Word: StrType;
-  Index: 0 .. MaxLength;
 
 BEGIN {CountWords}
   Index := 0;
@@ -97,7 +96,7 @@ BEGIN {CountWords}
           IF Ch IN BigLetters
           THEN 
             Ch := ToLower(Ch);
-          IF (Ch IN SmallLetters) AND (Index <= MaxLength)
+          IF (Ch IN SmallLetters) AND (Index < MaxLen) AND ((Ch <> '-') OR ((NOT EOLN) AND (Index <> 0)))
           THEN
             BEGIN
               Index := Index + 1;
