@@ -1,17 +1,25 @@
-PROGRAM CountWords(INPUT, OUTPUT);
-USES
-  BinaryWordTree;
+UNIT FileHandler2;
 
-CONST
-  EngLet = ['a' .. 'z'];
-  RusLet = ['à' .. 'ï'] + ['ð' .. 'ÿ'] + ['¸'];
-  BigLetters = ['A' .. 'Z'] + ['a' .. 'z'] + ['À' .. 'ß'] + ['¨'];
-  SmallLetters = EngLet + RusLet + ['-'];
-             
+INTERFACE
+
+USES
+  TypeUtils2;
+  
+FUNCTION ToLower(Ch: CHAR): CHAR; 
+
+PROCEDURE ReadStr(VAR FIn: TEXT);
+
+PROCEDURE OutputList(VAR FOut: TEXT);
+
+IMPLEMENTATION
+
+USES
+  BinaryWordTree2_1;
+
 FUNCTION ToLower(Ch: CHAR): CHAR;
 BEGIN {ToLower}
   CASE Ch OF
-    'A': ToLower := 'a';
+    'A': Result := 'a';
     'B': Result := 'b';
     'C': Result := 'c';
     'D': Result := 'd';
@@ -73,52 +81,56 @@ BEGIN {ToLower}
   ELSE
     Result := Ch
   END
-END; {Result}           
-             
-VAR
-  Index: 0 .. MaxLen;
-  Root: Tree;
-  Ch: CHAR;
-  F: TEXT;
-  Word: StrType;
+END; {Result}  
 
-BEGIN {CountWords}
-  Index := 0;
-  Root := NIL;
-  
-  WHILE NOT EOF
+PROCEDURE ReadStr(VAR FIn: TEXT);
+VAR
+  I: INTEGER;
+  Word: WordType;
+  Ch: CHAR;
+BEGIN {ReadWord}
+  I := 0;
+  WHILE (NOT EOLN(FIn)) AND (NOT EOF(FIn))
   DO
-    BEGIN
-      WHILE (NOT EOLN) AND (NOT EOF)
-      DO
-        BEGIN
-          READ(Ch);
-          IF Ch IN BigLetters
-          THEN 
-            Ch := ToLower(Ch);
-          IF (Ch IN SmallLetters) AND (Index < MaxLen) AND ((Ch <> '-') OR ((NOT EOLN) AND (Index <> 0)))
-          THEN
-            BEGIN
-              Index := Index + 1;
-              Word[Index] := Ch
-            END
-          ELSE
-            IF Index <> 0
-            THEN
-              BEGIN
-                Root := Insert(Root, Word, Index);
-                Index := 0
-              END
-        END;
-      IF Index <> 0
+    BEGIN   
+      READ(FIn, Ch);
+      IF Ch IN BigLetters
+      THEN 
+        Ch := ToLower(Ch);
+      IF (Ch IN SmallLetters) AND (I < MaxLen) AND ((Ch <> '-') OR ((NOT EOLN(FIn)) AND (I <> 0)))
       THEN
         BEGIN
-          Root := Insert(Root, Word, Index);
-          Index := 0
-        END;
-      IF NOT EOF
-      THEN
-        READLN
+          I := I + 1;
+          Word.Val[I] := Ch
+        END
+      ELSE
+        IF I <> 0
+        THEN
+          BEGIN
+            Word.Len := I;
+            Word.Count := 1;
+            InsertWord(Word);
+            Word.Len := 0;
+            Word.Count := 0;
+            I := 0
+          END
     END;
-  OutputTree(OUTPUT, Root)
-END. {CountWords}
+  IF I <> 0
+  THEN
+    BEGIN
+      Word.Len := I;
+      Word.Count := 1;
+      InsertWord(Word);
+      Word.Len := 0;
+      Word.Count := 0;
+      I := 0
+    END;
+END;  {ReadWord}
+
+PROCEDURE OutputList(VAR FOut: TEXT);
+BEGIN {OutputTree}
+  OutputTree(FOut)
+END; {OutputTree}
+
+BEGIN {WordHandler}
+END.  {WordHandler}

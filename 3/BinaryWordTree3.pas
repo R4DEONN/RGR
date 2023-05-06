@@ -1,24 +1,21 @@
-UNIT BinaryWordTree;
+UNIT BinaryWordTree3;
 
 INTERFACE
 
-CONST
-  MaxLen = 255;
+USES
+  TypeUtils3;
 
-TYPE
-  StrType = ARRAY [1 .. MaxLen] OF CHAR;
-  Tree = ^NodeType;
-  NodeType = RECORD
-               Key: StrType;
-               Count, Height, Length: INTEGER;
-               Left, Right: Tree
-             END;
+PROCEDURE InsertWord(Word: WordType); {ƒобавл€ет новое слово в дерево}
 
-FUNCTION Insert(VAR Ptr: Tree; Word: StrType; Len: INTEGER): Tree; {ƒобавл€ет новое слово в дерево}
-
-PROCEDURE OutputTree(VAR FOut: TEXT; Ptr: Tree); {¬ыводит элементы дерева в виде <слово><пробел><количество повторений>}
+PROCEDURE OutputTree(VAR FOut: TEXT); {¬ыводит элементы дерева в виде <слово><пробел><количество повторений>}
 
 IMPLEMENTATION
+
+USES
+  WordHandler3;
+
+VAR
+  Root: Tree;
   
 FUNCTION Height(Ptr: Tree): INTEGER;
 BEGIN {Height}
@@ -97,50 +94,15 @@ BEGIN {Balance}
         Result := RotateLeft(Ptr)
       END
 END; {Balance}
-    
-FUNCTION Lexico(Word1, Word2: StrType; Len1, Len2: INTEGER): INTEGER;
-{Result 0, 1, 2 если лексикографический пор€док F1 =, <, > чем F2       
-соответственно. ‘актические параметры, соответствующие F1 и F2,   
-должны быть различными}
+      
 
-VAR
-  Ch1, Ch2: CHAR;
-  Index: INTEGER;
-BEGIN {Lexico}
-  Index := 1;
-  Result := 0;
-  WHILE ((Index <> Len1 + 1) AND (Index <> Len2 + 1)) AND (Result = 0)
-  DO
-    BEGIN
-      Ch1 := Word1[Index];
-      Ch2 := Word2[Index];
-      Index := Index + 1;
-      IF (Ch1 < Ch2)
-      THEN {Ch1 < Ch2 или F1 короче F2}
-        Result := 1
-      ELSE
-        IF (Ch1 > Ch2)
-        THEN {Ch1 > Ch2 или F2 короче F1}
-          Result := 2
-    END; {WHILE}
-  IF Result = 0
-  THEN
-    IF Index <> Len1 + 1
-    THEN
-      Result := 2
-    ELSE
-      IF Index <> Len2 + 1
-      THEN
-        Result := 1
-END; {Lexico}  
+PROCEDURE InsertWord(Word: WordType);
 
-FUNCTION Insert(VAR Ptr: Tree; Word: StrType; Len: INTEGER): Tree;
-
+FUNCTION Insert(VAR Ptr: Tree; Word: WordType): Tree;
 CONST
   EqualKey = 0;
   RootBigger = 2;
   RootSmaller = 1;
-
 VAR
   Flag: INTEGER;
 BEGIN {Insert}
@@ -148,44 +110,55 @@ BEGIN {Insert}
   THEN
     BEGIN
       NEW(Ptr);
-      Ptr^.Key := Word;
-      Ptr^.Count := 1;
+      Ptr^.Key.WordArray[1] := Word;
+      Ptr^.Key.Count := Word.Count;
+      Ptr^.Key.Number := 1;
       Ptr^.Height := 1;
-      Ptr^.Length := Len;
       Ptr^.Left := NIL;
       Ptr^.Right := NIL
     END
   ELSE
     BEGIN
-      Flag := Lexico(Ptr^.Key, Word, Ptr^.Length, Len);
+      Flag := Lexico(Ptr^.Key.WordArray[1].Val, Word.Val, Ptr^.Key.WordArray[1].LenWOEnd, Word.LenWOEnd);
       IF Flag = RootBigger
       THEN
-        Ptr^.Left := Insert(Ptr^.Left, Word, Len)
+        Ptr^.Left := Insert(Ptr^.Left, Word)
       ELSE
         IF Flag = EqualKey
         THEN
-          Ptr^.Count := Ptr^.Count + 1
+          BEGIN
+            Ptr^.Key.Count := Ptr^.Key.Count + Word.Count;
+            Ptr^.Key.WordArray[Ptr^.Key.Number + 1] := Word;
+            Ptr^.Key.Number := Ptr^.Key.Number + 1
+          END
         ELSE
-          Ptr^.Right := Insert(Ptr^.Right, Word, Len)
-    END;
+          Ptr^.Right := Insert(Ptr^.Right, Word)
+    END;  
   Result := Balance(Ptr)
 END; {Insert}
 
-PROCEDURE OutputTree(VAR FOut: TEXT; Ptr: Tree);
+BEGIN {InsertWord}
+  Root := Insert(Root, Word)
+END;  {InsertWord}
+
+PROCEDURE OutputTree(VAR FOut: TEXT);
+
+PROCEDURE OutputFromTree(VAR FOut: TEXT; Ptr: Tree);
 VAR
   Index: INTEGER;
 BEGIN {OutputTree}
   IF Ptr <> NIL
   THEN
     BEGIN
-      OutputTree(FOut, Ptr^.Left);
-      FOR Index := 1 TO Ptr^.Length
-      DO
-        WRITE(FOut, Ptr^.Key[Index]);
-      WRITELN(FOut, ' ', Ptr^.Count);
-      OutputTree(FOut, Ptr^.Right)
+      OutputFromTree(FOut, Ptr^.Left);
+      PrintKey(FOut, Ptr^.Key);
+      OutputFromTree(FOut, Ptr^.Right)
     END
 END; {OutputTree}
+BEGIN
+  OutputFromTree(FOut, Root)
+END;
   
 BEGIN {BinaryWordTree}
+  Root := NIL;
 END.  {BinaryWordTree}
