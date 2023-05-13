@@ -24,7 +24,7 @@ TYPE
              
 CONST
   SingleLetEndsCount = 11;
-  DoubleLetEndsCount = 57;
+  DoubleLetEndsCount = 58;
   TripleLetEndsCount = 34;
   QuadroLetEndsCount = 1;
   MaxLen = 256;
@@ -35,8 +35,8 @@ CONST
                                                                'её', 'её', 'ех', 'ею', 'ёт', 'ёх', 'ие', 'ий', 
                                                                'им', 'ит', 'их', 'ию', 'ми', 'мя', 'ов', 'ое', 
                                                                'оё', 'ом', 'ою', 'см', 'ум', 'ух', 'ую', 'шь',
-                                                               'ей', 'ью', 'ия', 'ии', 'ях', 'ям', 'ёй', 'es',
-                                                               'ed'
+                                                               'ей', 'ью', 'ия', 'ии', 'ях', 'ям', 'ёй', 'ев', 
+                                                               'es', 'ed'
                                                                );
   TripleLetEnds: ARRAY [1 .. TripleLetEndsCount] OF StrType = ('ать', 'ять', 'оть', 'еть', 'ешь', 'ишь', 'ете', 
                                                                'ите', 'ала', 'яла', 'али', 'яли', 'ола', 'ела', 

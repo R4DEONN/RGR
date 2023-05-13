@@ -62,12 +62,30 @@ BEGIN {CheckEnding}
       J := J + 1;
       Ending.Val[J] := Word.Val[Word.Len - I]
     END;
-  Ending.Len := J;       
-  WHILE (I <= EndingCount) AND (Result <> 0)
+  Ending.Len := J;
+  WHILE (I <= EndingCount) AND (Result <> 0) AND (EndingLen = 4)
+  DO
+    BEGIN
+      I := I + 1;
+      Result := Lexico(Ending.Val, QuadroLetEnds[I], EndingLen, EndingLen)
+    END;
+  WHILE (I <= EndingCount) AND (Result <> 0) AND (EndingLen = 3)
   DO
     BEGIN
       I := I + 1;
       Result := Lexico(Ending.Val, TripleLetEnds[I], EndingLen, EndingLen)
+    END;
+  WHILE (I <= EndingCount) AND (Result <> 0) AND (EndingLen = 2)
+  DO
+    BEGIN
+      I := I + 1;
+      Result := Lexico(Ending.Val, DoubleLetEnds[I], EndingLen, EndingLen)
+    END;
+  WHILE (I <= EndingCount) AND (Result <> 0)
+  DO
+    BEGIN
+      I := I + 1;
+      Result := Lexico(Ending.Val, SingleLetEnds[I], EndingLen, EndingLen)
     END
 END;  {CheckEnding}
 
