@@ -116,7 +116,7 @@ BEGIN {ReadWord}
     BEGIN
       InsertWord(Word, I);
       I := 0
-    END;
+    END
 END;  {ReadWord}
 
 PROCEDURE OutputList(VAR FOut: TEXT);
